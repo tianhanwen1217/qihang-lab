@@ -1,0 +1,3 @@
+qihang-lab.xyz {
+    reverse_proxy qihang-lab:3000
+}

@@ -1,0 +1,23 @@
+services:
+  qihang-lab:
+    image: stonith404/pingvin-share
+    restart: unless-stopped
+    environment:
+      - TRUST_PROXY=true
+    volumes:
+      - pingvin_data:/opt/app/backend/data
+      - pingvin_images:/opt/app/frontend/public/img
+
+  caddy:
+    image: caddy:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./Caddyfile:/etc/caddy/Caddyfile"
+      - "./caddy_data:/data"
+
+volumes:
+  pingvin_data:
+  pingvin_images:

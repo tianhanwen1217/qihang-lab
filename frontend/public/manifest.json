@@ -1,0 +1,19 @@
+{
+  "name": "起航实验室",
+  "short_name": "起航实验室",
+  "theme_color": "#061126",
+  "background_color": "#030817",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "img/qihang-logo.jpg?v=20260812-6",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "splash_pages": null
+}

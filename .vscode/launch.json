@@ -1,0 +1,56 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "🚀 调试后端 (NestJS 断点)",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/backend",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": [
+        "/c",
+        "${workspaceFolder}\\backend\\debug.cmd"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "FNM_DIR": "D:\\fnm"
+      },
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "restart": true,
+      "outputCapture": "std"
+    },
+    {
+      "name": "🚀 后端 (终端启动 + 附加断点)",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "restart": true,
+      "sourceMaps": true,
+      "preLaunchTask": "🚀 后端启动 (调试模式)",
+      "postDebugTask": "⏹️ 停止后端",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "🎨 调试前端 (Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/frontend",
+      "sourceMapPathOverrides": {
+        "webpack:///./*": "${webRoot}/*"
+      }
+    },
+    {
+      "name": "🎨 调试前端 (Edge)",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/frontend",
+      "sourceMapPathOverrides": {
+        "webpack:///./*": "${webRoot}/*"
+      }
+    }
+  ]
+}

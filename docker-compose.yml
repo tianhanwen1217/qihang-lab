@@ -1,0 +1,19 @@
+services:
+  qihang-lab:
+    image: stonith404/pingvin-share # 可替换为你自己的镜像
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - TRUST_PROXY=false
+    volumes:
+      - pingvin_data:/opt/app/backend/data
+      - pingvin_images:/opt/app/frontend/public/img
+  #      - "./config.yaml:/opt/app/config.yaml"
+
+  # To add ClamAV, to scan your shares for malicious files, 
+  # see https://stonith404.github.io/pingvin-share/setup/integrations/#clamav-docker-only
+
+volumes:
+  pingvin_data:
+  pingvin_images:

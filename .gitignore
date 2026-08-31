@@ -1,0 +1,71 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# next.js
+/frontend/.next/
+/frontend/out/
+
+# yarn
+yarn.lock
+
+# build
+build/
+dist/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# environment and local data
+.env
+.env.*
+!*.env.example
+!**/.env.example
+/backend/prisma/.env
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# PWA
+/frontend/public/workbox-*
+/frontend/public/sw.*
+
+# project specific
+/backend/data/
+/data/
+/docs/build/
+/docs/.docusaurus
+/docs/.cache-loader
+/config.yaml
+
+# local release artifacts and browser previews
+*.tar.gz
+*.zip
+*.log
+/qihang-lab-runtime-*/
+/.chrome-*/
+/.edge-*/
+
+# obsolete machine-specific deployment helper
+/deploy.sh
+
+# upstream image publishing is intentionally disabled in this private fork
+/.github/workflows/build-docker-image.yml
+
+# Jetbrains specific (webstorm)
+.idea/**/**

@@ -1,0 +1,37 @@
+services:
+  qihang-lab:
+    image: ${QIHANG_IMAGE:?QIHANG_IMAGE must be set}
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - TRUST_PROXY=true
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+    volumes:
+      - qihang_lab_data:/opt/app/backend/data
+      - qihang_lab_images:/opt/app/frontend/public/img
+      - "./config.yaml:/opt/app/config.yaml"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - qihang-lab
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "./Caddyfile:/etc/caddy/Caddyfile:ro"
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  qihang_lab_data:
+    external: true
+    name: qihang_lab_data
+  qihang_lab_images:
+    external: true
+    name: qihang_lab_images
+  caddy_data:
+  caddy_config:

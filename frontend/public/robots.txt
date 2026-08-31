@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /auth
+Disallow: /upload
+Disallow: /share
+Disallow: /f/
+Disallow: /s/
+
+Sitemap: https://qihang-lab.xyz/sitemap.xml

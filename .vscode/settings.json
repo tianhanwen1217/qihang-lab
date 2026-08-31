@@ -1,0 +1,37 @@
+{
+  "terminal.integrated.env.windows": {
+    "FNM_DIR": "D:\\fnm"
+  },
+  "terminal.integrated.profiles.windows": {
+    "Pingvin Dev": {
+      "path": ["pwsh.exe"],
+      "args": ["-NoLogo", "-Command", ". D:\\fnm\\fnm-profile.ps1"]
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "Pingvin Dev",
+  "files.exclude": {
+    "**/.next": true,
+    "**/dist": false
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.next": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "cSpell.words": [
+    "qihang",
+    "pingvin"
+  ]
+}

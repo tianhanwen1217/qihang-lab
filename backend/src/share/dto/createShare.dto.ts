@@ -1,0 +1,43 @@
+import { Type } from "class-transformer";
+import {
+  IsEmail,
+  IsIn,
+  IsOptional,
+  IsString,
+  Length,
+  Matches,
+  MaxLength,
+  ValidateNested,
+} from "class-validator";
+import { ShareSecurityDTO } from "./shareSecurity.dto";
+
+export class CreateShareDTO {
+  @IsString()
+  @Matches("^[a-zA-Z0-9_-]*$", undefined, {
+    message: "ID can only contain letters, numbers, underscores and hyphens",
+  })
+  @Length(3, 50)
+  id: string;
+
+  @Length(3, 30)
+  @IsOptional()
+  name: string;
+
+  @IsString()
+  expiration: string;
+
+  @IsIn(["PUBLIC", "UNLISTED"])
+  @IsOptional()
+  visibility: "PUBLIC" | "UNLISTED" = "PUBLIC";
+
+  @MaxLength(512)
+  @IsOptional()
+  description: string;
+
+  @IsEmail({}, { each: true })
+  recipients: string[];
+
+  @ValidateNested()
+  @Type(() => ShareSecurityDTO)
+  security: ShareSecurityDTO;
+}

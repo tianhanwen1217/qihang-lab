@@ -1,0 +1,16 @@
+services:
+  qihang-lab:
+    build: .
+    restart: unless-stopped
+    ports:
+      - 3001:3000
+    environment:
+      - TRUST_PROXY=false
+    volumes:
+      - pingvin_data:/opt/app/backend/data
+      - pingvin_images:/opt/app/frontend/public/img
+#      - "./config.yaml:/opt/app/config.yaml"
+
+volumes:
+  pingvin_data:
+  pingvin_images:

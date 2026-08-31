@@ -1,0 +1,216 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "🔧 后端编译 (nest build)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npm run build"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$tsc"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🚀 后端启动 (调试模式)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npm run start:debug"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Debugger listening",
+          "endsPattern": "Debugger listening"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "🚀 后端启动 (开发模式)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npm run dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Starting compilation",
+          "endsPattern": "Nest application successfully started|NestApplication|Application is running"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "⏹️ 停止后端",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        "Stop-Process -Name node -Force -ErrorAction SilentlyContinue"
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🎨 前端启动 (开发模式)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npm run dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "ready - started server",
+          "endsPattern": "ready - started server"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "🗄️ Prisma 生成客户端",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npx prisma generate"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🗄️ Prisma 迁移 (dev)",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npx prisma migrate dev"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🗄️ Prisma 查看数据库",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npx prisma studio"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
+    },
+    {
+      "label": "📦 安装后端依赖",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npm install"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/backend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "📦 安装前端依赖",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoLogo",
+        "-Command",
+        ". D:\\fnm\\fnm-profile.ps1; npm install"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/frontend"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    }
+  ]
+}
