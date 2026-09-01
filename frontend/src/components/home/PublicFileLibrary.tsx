@@ -24,7 +24,9 @@ import {
   TbDownload,
   TbFile,
   TbFiles,
+  TbEye,
   TbSearch,
+  TbStar,
   TbTrendingUp,
 } from "react-icons/tb";
 import publicFileService from "../../services/publicFile.service";
@@ -84,12 +86,14 @@ const useStyles = createStyles((theme) => ({
       opacity: 0,
       transition: "opacity .2s ease",
     },
-    "@media (hover: hover)": { "&:hover": {
-      transform: "translateY(-3px)",
-      borderColor: "var(--qh-border-strong)",
-      boxShadow: "var(--qh-shadow)",
-      "&::before": { opacity: .72 },
-    } },
+    "@media (hover: hover)": {
+      "&:hover": {
+        transform: "translateY(-3px)",
+        borderColor: "var(--qh-border-strong)",
+        boxShadow: "var(--qh-shadow)",
+        "&::before": { opacity: 0.72 },
+      },
+    },
     [theme.fn.smallerThan("sm")]: {
       padding: 18,
       "&:hover": { transform: "none" },
@@ -157,10 +161,26 @@ const FileRow = ({ file }: { file: PublicFile }) => {
           <Text size="xs" color="dimmed">
             {file.category} · {byteToHumanSizeString(parseInt(file.size))}
           </Text>
+          <Group spacing="xs" mt={2}>
+            <Text size="xs" color="dimmed">
+              <TbEye size={12} /> {file.views}
+            </Text>
+            <Text size="xs" color="dimmed">
+              <TbDownload size={12} /> {file.downloads}
+            </Text>
+            <Text size="xs" color="dimmed">
+              <TbStar size={12} /> {file.stars}
+            </Text>
+          </Group>
         </div>
       </Group>
       <Group spacing={4} noWrap className={classes.mobileActions}>
-        <Button component={Link} href={`/f/${file.token}`} compact variant="subtle">
+        <Button
+          component={Link}
+          href={`/f/${file.token}`}
+          compact
+          variant="subtle"
+        >
           详情
         </Button>
         <Button
@@ -182,7 +202,9 @@ const PackageCard = ({ item }: { item: PublicPackage }) => {
   const [expanded, setExpanded] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [loadedFiles, setLoadedFiles] = useState(item.files);
-  const [loadedPage, setLoadedPage] = useState(item.files.length >= item.fileCount ? 1 : 0);
+  const [loadedPage, setLoadedPage] = useState(
+    item.files.length >= item.fileCount ? 1 : 0,
+  );
   const [loadingFiles, setLoadingFiles] = useState(false);
   const [fileLoadError, setFileLoadError] = useState(false);
   const visibleFiles = expanded ? loadedFiles : item.files.slice(0, 3);
@@ -196,7 +218,10 @@ const PackageCard = ({ item }: { item: PublicPackage }) => {
       const result = await publicFileService.listPackageFiles(item.id, page);
       setLoadedFiles((current) => {
         const known = new Set(current.map((file) => file.token));
-        return [...current, ...result.items.filter((file) => !known.has(file.token))];
+        return [
+          ...current,
+          ...result.items.filter((file) => !known.has(file.token)),
+        ];
       });
       setLoadedPage(page);
     } catch {
@@ -226,68 +251,112 @@ const PackageCard = ({ item }: { item: PublicPackage }) => {
       </Group>
 
       <div className={classes.cardBody}>
-      <Text className={classes.description} mt="md" lineClamp={descriptionExpanded ? undefined : 4}>
-        {item.description?.trim() || "上传者暂未填写资料说明"}
-      </Text>
-      {(item.description?.length || 0) > 110 && (
-        <Button compact variant="subtle" px={0} onClick={() => setDescriptionExpanded((value) => !value)}>
-          {descriptionExpanded ? "收起说明" : "展开完整说明"}
-        </Button>
-      )}
-      <Group spacing="xs" mt="sm">
-        <Text size="xs" color="dimmed">{item.uploader}</Text>
-        <Text size="xs" color="dimmed">·</Text>
-        <Text size="xs" color="dimmed">
-          {byteToHumanSizeString(item.totalSize)}
-        </Text>
-        <Text size="xs" color="dimmed">· {moment(item.createdAt).fromNow()}</Text>
-        <Text size="xs" color="dimmed">· 下载 {item.downloads} 次</Text>
-      </Group>
-
-      {item.downloadableAsZip && (
-        <Button
-          component="a"
-          href={publicFileService.packageContentUrl(item.downloadId!)}
+        <Text
+          className={classes.description}
           mt="md"
-          compact
-          variant="gradient"
-          gradient={{ from: "blue", to: "cyan" }}
-          leftIcon={<TbDownload size={15} />}
+          lineClamp={descriptionExpanded ? undefined : 4}
         >
-          下载整个资料包（ZIP）
-        </Button>
-      )}
+          {item.description?.trim() || "上传者暂未填写资料说明"}
+        </Text>
+        {(item.description?.length || 0) > 110 && (
+          <Button
+            compact
+            variant="subtle"
+            px={0}
+            onClick={() => setDescriptionExpanded((value) => !value)}
+          >
+            {descriptionExpanded ? "收起说明" : "展开完整说明"}
+          </Button>
+        )}
+        <Group spacing="xs" mt="sm">
+          <Text size="xs" color="dimmed">
+            {item.uploader}
+          </Text>
+          <Text size="xs" color="dimmed">
+            ·
+          </Text>
+          <Text size="xs" color="dimmed">
+            {byteToHumanSizeString(item.totalSize)}
+          </Text>
+          <Text size="xs" color="dimmed">
+            · {moment(item.createdAt).fromNow()}
+          </Text>
+          <Text size="xs" color="dimmed">
+            · 下载 {item.downloads} 次
+          </Text>
+          <Text size="xs" color="dimmed">
+            · 浏览 {item.views} 次
+          </Text>
+          <Text size="xs" color="dimmed">
+            · 星标 {item.stars}
+          </Text>
+        </Group>
 
-      <Divider my="md" color="rgba(90,160,255,.1)" />
-      <Stack spacing={0}>{visibleFiles.map((file) => <FileRow key={file.token} file={file} />)}</Stack>
-      {expanded && fileLoadError && (
-        <Button mt="sm" fullWidth compact color="orange" variant="light" onClick={() => void loadFiles(Math.max(1, loadedPage + 1))}>
-          文件列表加载失败，点击重试
-        </Button>
-      )}
-      {expanded && !fileLoadError && hasMoreFiles && loadedPage > 0 && (
-        <Button mt="sm" fullWidth compact variant="light" loading={loadingFiles} onClick={() => void loadFiles(loadedPage + 1)}>
-          再加载 60 个文件
-        </Button>
-      )}
-      {item.fileCount > 3 && (
-        <Button
-          mt="sm"
-          fullWidth
-          compact
-          variant="subtle"
-          loading={expanded && loadingFiles && loadedPage === 0}
-          rightIcon={
-            <TbChevronDown
-              size={16}
-              style={{ transform: expanded ? "rotate(180deg)" : undefined, transition: "transform .2s ease" }}
-            />
-          }
-          onClick={toggleExpanded}
-        >
-          {expanded ? "收起文件" : `查看全部 ${item.fileCount} 个文件`}
-        </Button>
-      )}
+        {item.downloadableAsZip && (
+          <Button
+            component="a"
+            href={publicFileService.packageContentUrl(item.downloadId!)}
+            mt="md"
+            compact
+            variant="gradient"
+            gradient={{ from: "blue", to: "cyan" }}
+            leftIcon={<TbDownload size={15} />}
+          >
+            下载整个资料包（ZIP）
+          </Button>
+        )}
+
+        <Divider my="md" color="rgba(90,160,255,.1)" />
+        <Stack spacing={0}>
+          {visibleFiles.map((file) => (
+            <FileRow key={file.token} file={file} />
+          ))}
+        </Stack>
+        {expanded && fileLoadError && (
+          <Button
+            mt="sm"
+            fullWidth
+            compact
+            color="orange"
+            variant="light"
+            onClick={() => void loadFiles(Math.max(1, loadedPage + 1))}
+          >
+            文件列表加载失败，点击重试
+          </Button>
+        )}
+        {expanded && !fileLoadError && hasMoreFiles && loadedPage > 0 && (
+          <Button
+            mt="sm"
+            fullWidth
+            compact
+            variant="light"
+            loading={loadingFiles}
+            onClick={() => void loadFiles(loadedPage + 1)}
+          >
+            再加载 60 个文件
+          </Button>
+        )}
+        {item.fileCount > 3 && (
+          <Button
+            mt="sm"
+            fullWidth
+            compact
+            variant="subtle"
+            loading={expanded && loadingFiles && loadedPage === 0}
+            rightIcon={
+              <TbChevronDown
+                size={16}
+                style={{
+                  transform: expanded ? "rotate(180deg)" : undefined,
+                  transition: "transform .2s ease",
+                }}
+              />
+            }
+            onClick={toggleExpanded}
+          >
+            {expanded ? "收起文件" : `查看全部 ${item.fileCount} 个文件`}
+          </Button>
+        )}
       </div>
     </Paper>
   );
@@ -311,7 +380,8 @@ const PublicFileLibrary = () => {
     const id = ++request.current;
     setLoading(true);
     setLoadError(false);
-    publicFileService.listPackages(debouncedSearch, page, category, sort)
+    publicFileService
+      .listPackages(debouncedSearch, page, category, sort)
       .then((value) => id === request.current && setResult(value))
       .catch(() => id === request.current && setLoadError(true))
       .finally(() => id === request.current && setLoading(false));
@@ -372,12 +442,23 @@ const PublicFileLibrary = () => {
       </Paper>
 
       {loading ? (
-        <SimpleGrid mt={24} cols={2} spacing="lg" breakpoints={[{ maxWidth: "sm", cols: 1 }]}>
+        <SimpleGrid
+          mt={24}
+          cols={2}
+          spacing="lg"
+          breakpoints={[{ maxWidth: "sm", cols: 1 }]}
+        >
           {[0, 1, 2, 3].map((key) => (
             <Paper key={key} className={classes.card} mih={330}>
-              <Group position="apart"><Skeleton height={24} width="55%" /><Skeleton height={22} width={72} /></Group>
-              <Skeleton mt="xl" height={15} /><Skeleton mt={8} height={15} /><Skeleton mt={8} height={15} width="78%" />
-              <Skeleton mt={28} height={52} /><Skeleton mt={8} height={52} />
+              <Group position="apart">
+                <Skeleton height={24} width="55%" />
+                <Skeleton height={22} width={72} />
+              </Group>
+              <Skeleton mt="xl" height={15} />
+              <Skeleton mt={8} height={15} />
+              <Skeleton mt={8} height={15} width="78%" />
+              <Skeleton mt={28} height={52} />
+              <Skeleton mt={8} height={52} />
             </Paper>
           ))}
         </SimpleGrid>
@@ -385,24 +466,43 @@ const PublicFileLibrary = () => {
         <Center className={classes.empty}>
           <Stack align="center">
             <Text weight={700}>资料库暂时加载失败</Text>
-            <Button variant="light" onClick={() => setRetryKey((v) => v + 1)}>重新加载</Button>
+            <Button variant="light" onClick={() => setRetryKey((v) => v + 1)}>
+              重新加载
+            </Button>
           </Stack>
         </Center>
       ) : result?.items.length ? (
         <>
-          <SimpleGrid mt={24} cols={2} spacing="lg" breakpoints={[{ maxWidth: "sm", cols: 1 }]}>
-            {result.items.map((item) => <PackageCard key={item.id} item={item} />)}
+          <SimpleGrid
+            mt={24}
+            cols={2}
+            spacing="lg"
+            breakpoints={[{ maxWidth: "sm", cols: 1 }]}
+          >
+            {result.items.map((item) => (
+              <PackageCard key={item.id} item={item} />
+            ))}
           </SimpleGrid>
           {result.total > result.pageSize && (
-            <Center mt={34}><Pagination value={page} onChange={setPage} total={Math.ceil(result.total / result.pageSize)} /></Center>
+            <Center mt={34}>
+              <Pagination
+                value={page}
+                onChange={setPage}
+                total={Math.ceil(result.total / result.pageSize)}
+              />
+            </Center>
           )}
         </>
       ) : (
         <Center className={classes.empty}>
           <Stack align="center" spacing={6}>
             <TbFiles size={34} color="#4aaee8" />
-            <Text weight={700}>{search ? "没有匹配的资料包" : "公开资料正在整理中"}</Text>
-            <Text size="sm" color="dimmed">管理员上传并设为公开后，会显示在这里。</Text>
+            <Text weight={700}>
+              {search ? "没有匹配的资料包" : "公开资料正在整理中"}
+            </Text>
+            <Text size="sm" color="dimmed">
+              管理员上传并设为公开后，会显示在这里。
+            </Text>
           </Stack>
         </Center>
       )}

@@ -19,6 +19,8 @@ export type FileMetaData = {
   linkEnabled?: boolean;
   passwordProtected?: boolean;
   views?: number;
+  downloads?: number;
+  stars?: number;
 };
 
 export type FileListItem = FileUpload | (FileMetaData & { deleted?: boolean });

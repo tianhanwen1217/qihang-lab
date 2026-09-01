@@ -26,6 +26,7 @@ RUN mkdir -p /opt/app/frontend/node_modules/moment/locale \
 
 COPY runtime/backend/dist/ /opt/app/backend/dist/
 COPY runtime/backend/prisma/ /opt/app/backend/prisma/
+COPY runtime/backend/prisma-client/ /opt/app/backend/node_modules/.prisma/client/
 COPY runtime/backend/package.json /opt/app/backend/package.json
 COPY runtime/backend/tsconfig.json /opt/app/backend/tsconfig.json
 
@@ -37,6 +38,7 @@ RUN test "$(node -v)" = "v22.16.0" \
     && test "$(npm -v)" = "10.9.2" \
     && test "$(cat /etc/alpine-release)" = "3.21.3" \
     && node -e 'require("/opt/app/backend/node_modules/@prisma/client"); process.stdout.write("prisma ok\n")' \
+    && node -e 'const {Prisma}=require("/opt/app/backend/node_modules/@prisma/client");const f=Prisma.dmmf.datamodel.models.find(m=>m.name==="File");for(const n of ["views","previewViews","stars"]){if(!f.fields.some(x=>x.name===n))process.exit(1)}process.stdout.write("file metrics ok\n")' \
     && node -e 'const sharp=require("/opt/app/backend/node_modules/sharp"); sharp({create:{width:1,height:1,channels:4,background:{r:0,g:0,b:0,alpha:1}}}).png().toBuffer().then(()=>process.stdout.write("sharp ok\n"))' \
     && node -e 'const argon=require("/opt/app/backend/node_modules/argon2"); argon.hash("qihang-hotfix").then(h=>argon.verify(h,"qihang-hotfix")).then(ok=>{if(!ok)process.exit(1);process.stdout.write("argon2 ok\n")})'
 

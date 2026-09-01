@@ -66,6 +66,7 @@ export class FileController {
     @Param("shareId") shareId: string,
   ) {
     const zipStream = await this.fileService.getZip(shareId);
+    await this.fileService.recordShareDownload(shareId);
 
     res.set({
       "Content-Type": "application/zip",
@@ -84,6 +85,11 @@ export class FileController {
     @Query("download") download = "true",
   ) {
     const file = await this.fileService.get(shareId, fileId);
+    await this.fileService.recordFileContentAccess(
+      shareId,
+      fileId,
+      download === "true",
+    );
 
     const downloadName = fileDownloadName(file.metaData.name);
     const headers = {
@@ -231,6 +237,14 @@ export class PublicFileController {
     return { unlocked: true };
   }
 
+  @Post(":token/star")
+  async star(@Param("token") token: string, @Req() request: Request) {
+    return this.fileService.starPublicFile(
+      token,
+      request.cookies[this.cookieName(token)],
+    );
+  }
+
   @Get(":token/content")
   async getContent(
     @Param("token") token: string,
@@ -241,6 +255,7 @@ export class PublicFileController {
     const file = await this.fileService.getPublicContent(
       token,
       request.cookies[this.cookieName(token)],
+      download === "true",
     );
     const downloadName = fileDownloadName(file.metaData.name);
     const headers = {

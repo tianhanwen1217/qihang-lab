@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-RELEASE="20260831-upload-flow-3"
+RELEASE="20260901-file-insights-2"
 IMAGE="qihang-lab-custom:${RELEASE}"
 BASE_IMAGE="qihang-lab-custom:20260812-16"
 ROLLBACK_IMAGE=""
@@ -73,6 +73,8 @@ for required in \
   "${SOURCE_DIR}/runtime/frontend/.next/BUILD_ID" \
   "${SOURCE_DIR}/runtime/backend/dist/src/main.js" \
   "${SOURCE_DIR}/runtime/backend/prisma/schema.prisma" \
+  "${SOURCE_DIR}/runtime/backend/prisma-client/index.js" \
+  "${SOURCE_DIR}/runtime/backend/prisma-client/schema.prisma" \
   "${SOURCE_DIR}/release-metadata/npm-files.sha256" \
   "${SOURCE_DIR}/release-metadata/base-image.txt" \
   "${SOURCE_DIR}/release-metadata/prisma-schema.sha256" \
@@ -91,7 +93,7 @@ fi
 EXPECTED_SCHEMA_HASH="$(awk '{print $1}' "${SOURCE_DIR}/release-metadata/prisma-schema.sha256")"
 ACTUAL_SCHEMA_HASH="$(sha256sum "${SOURCE_DIR}/runtime/backend/prisma/schema.prisma" | awk '{print $1}')"
 if [ "$ACTUAL_SCHEMA_HASH" != "$EXPECTED_SCHEMA_HASH" ]; then
-  echo "Prisma schema differs from the current production release; refusing dependency reuse." >&2
+  echo "Prisma schema does not match this release package." >&2
   exit 1
 fi
 if [ ! -f "${APP_DIR}/docker-compose.yml" ] || [ ! -f "${APP_DIR}/config.yaml" ]; then
@@ -119,7 +121,7 @@ if [ -z "$CURRENT_ID" ]; then
 fi
 CURRENT_IMAGE="$(docker inspect --format '{{.Config.Image}}' "$CURRENT_ID")"
 case "$CURRENT_IMAGE" in
-  "$BASE_IMAGE"|qihang-lab-custom:20260813-upload-fix-1|qihang-lab-custom:20260813-upload-fix-2|qihang-lab-custom:20260813-upload-fix-3|qihang-lab-custom:20260813-upload-fix-4|qihang-lab-custom:20260813-upload-fix-5|qihang-lab-custom:20260815-theme-1|qihang-lab-custom:20260815-stability-1|qihang-lab-custom:20260815-harness-1|qihang-lab-custom:20260821-recruit-media-1|qihang-lab-custom:20260821-recruit-media-2|qihang-lab-custom:20260821-recruit-media-3|qihang-lab-custom:20260821-recruit-media-4|qihang-lab-custom:20260824-package-link-1|qihang-lab-custom:20260831-upload-flow-1|qihang-lab-custom:20260831-upload-flow-2)
+  "$BASE_IMAGE"|qihang-lab-custom:20260813-upload-fix-1|qihang-lab-custom:20260813-upload-fix-2|qihang-lab-custom:20260813-upload-fix-3|qihang-lab-custom:20260813-upload-fix-4|qihang-lab-custom:20260813-upload-fix-5|qihang-lab-custom:20260815-theme-1|qihang-lab-custom:20260815-stability-1|qihang-lab-custom:20260815-harness-1|qihang-lab-custom:20260821-recruit-media-1|qihang-lab-custom:20260821-recruit-media-2|qihang-lab-custom:20260821-recruit-media-3|qihang-lab-custom:20260821-recruit-media-4|qihang-lab-custom:20260824-package-link-1|qihang-lab-custom:20260831-upload-flow-1|qihang-lab-custom:20260831-upload-flow-2|qihang-lab-custom:20260831-upload-flow-3)
     ROLLBACK_IMAGE="$CURRENT_IMAGE"
     ;;
   *)
@@ -157,6 +159,7 @@ docker run --rm --entrypoint sh "$IMAGE" -eu -c '
   test "$(npm -v)" = "10.9.2"
   test "$(cat /etc/alpine-release)" = "3.21.3"
   node -e '\''require("/opt/app/backend/node_modules/@prisma/client"); process.stdout.write("prisma ok\\n")'\''
+  node -e '\''const {Prisma}=require("/opt/app/backend/node_modules/@prisma/client");const f=Prisma.dmmf.datamodel.models.find(m=>m.name==="File");for(const n of ["views","previewViews","stars"]){if(!f.fields.some(x=>x.name===n))process.exit(1)}process.stdout.write("file metrics ok\\n")'\''
   node -e '\''const sharp=require("/opt/app/backend/node_modules/sharp"); sharp({create:{width:1,height:1,channels:4,background:{r:0,g:0,b:0,alpha:1}}}).png().toBuffer().then(()=>process.stdout.write("sharp ok\\n"))'\''
   node -e '\''const argon=require("/opt/app/backend/node_modules/argon2"); argon.hash("qihang-hotfix").then(h=>argon.verify(h,"qihang-hotfix")).then(ok=>{if(!ok)process.exit(1);process.stdout.write("argon2 ok\\n")})'\''
 '

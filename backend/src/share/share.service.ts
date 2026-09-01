@@ -187,10 +187,12 @@ export class ShareService {
           }),
         )
         .catch(() =>
-          this.prisma.share.update({
-            where: { id },
-            data: { isZipReady: false },
-          }).catch(() => undefined),
+          this.prisma.share
+            .update({
+              where: { id },
+              data: { isZipReady: false },
+            })
+            .catch(() => undefined),
         );
     }
 
@@ -235,10 +237,7 @@ export class ShareService {
 
     return {
       ...updatedShare,
-      files: updatedShare.files.map((file) => ({
-        ...file,
-        passwordProtected: !!file.linkPassword,
-      })),
+      files: updatedShare.files.map((file) => this.toClientFile(file)),
       notifyReverseShareCreator,
     };
   }
@@ -260,10 +259,7 @@ export class ShareService {
       return {
         ...share,
         size: share.files.reduce((acc, file) => acc + parseInt(file.size), 0),
-        files: share.files.map((file) => ({
-          ...file,
-          passwordProtected: !!file.linkPassword,
-        })),
+        files: share.files.map((file) => this.toClientFile(file)),
       };
     });
   }
@@ -282,10 +278,7 @@ export class ShareService {
       return {
         ...share,
         size: share.files.reduce((acc, file) => acc + parseInt(file.size), 0),
-        files: share.files.map((file) => ({
-          ...file,
-          passwordProtected: !!file.linkPassword,
-        })),
+        files: share.files.map((file) => this.toClientFile(file)),
         recipients: share.recipients.map((recipients) => recipients.email),
         security: {
           maxViews: share.security?.maxViews,
@@ -317,10 +310,7 @@ export class ShareService {
     return {
       ...share,
       hasPassword: !!share.security?.password,
-      files: share.files.map((file) => ({
-        ...file,
-        passwordProtected: !!file.linkPassword,
-      })),
+      files: share.files.map((file) => this.toClientFile(file)),
     };
   }
 
@@ -451,5 +441,20 @@ export class ShareService {
     } catch {
       return false;
     }
+  }
+
+  private toClientFile<
+    T extends {
+      views: number;
+      previewViews: number;
+      linkPassword: string | null;
+    },
+  >(file: T) {
+    return {
+      ...file,
+      views: file.previewViews,
+      downloads: file.views,
+      passwordProtected: !!file.linkPassword,
+    };
   }
 }

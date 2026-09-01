@@ -15,9 +15,11 @@ import {
   TbCopy,
   TbDownload,
   TbExternalLink,
+  TbEye,
   TbFiles,
   TbLink,
   TbSettings,
+  TbStar,
   TbTrash,
 } from "react-icons/tb";
 import { FileMetaData } from "../../types/File.type";
@@ -249,9 +251,19 @@ const PackageHistoryList = ({
                         )}
                       </Group>
                       <Text size="xs" color="dimmed" mt={3}>
-                        {byteToHumanSizeString(parseInt(file.size))} · 下载{" "}
-                        {file.views ?? 0} 次
+                        {byteToHumanSizeString(parseInt(file.size))}
                       </Text>
+                      <Group spacing="md" mt={5}>
+                        <Text size="xs" color="dimmed">
+                          <TbEye size={13} /> 浏览 {file.views ?? 0}
+                        </Text>
+                        <Text size="xs" color="dimmed">
+                          <TbDownload size={13} /> 下载 {file.downloads ?? 0}
+                        </Text>
+                        <Text size="xs" color="dimmed">
+                          <TbStar size={13} /> 星标 {file.stars ?? 0}
+                        </Text>
+                      </Group>
                       {file.accessToken && (
                         <Group spacing={5} mt={7} noWrap>
                           <TbLink size={14} color="#55cfff" />

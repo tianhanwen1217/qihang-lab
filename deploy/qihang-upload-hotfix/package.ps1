@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$release = "20260831-upload-flow-3"
+$release = "20260901-file-insights-2"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $workspaceRoot = Split-Path $repoRoot -Parent
 $stage = Join-Path $workspaceRoot "qihang-lab-runtime-$release"
@@ -23,12 +23,16 @@ function Assert-ProtectedNpmFiles {
   }
 }
 
-function Assert-PrismaSchema {
+function Assert-PrismaClient {
   $schemaPath = Join-Path $repoRoot "backend\prisma\schema.prisma"
-  $expected = "996cb0462a3b4f40b6b836cb6486d51015f472eaff3783a8c58da825140c8914"
-  $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $schemaPath).Hash.ToLowerInvariant()
-  if ($actual -ne $expected) {
-    throw "Prisma schema differs from qihang-lab-custom:20260812-16; this hotfix cannot reuse its Prisma Client."
+  $clientSchemaPath = Join-Path $repoRoot "backend\node_modules\.prisma\client\schema.prisma"
+  if (-not (Test-Path -LiteralPath $clientSchemaPath)) {
+    throw "Generated Prisma Client is missing. Run npm exec prisma generate in backend first."
+  }
+  $schemaHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $schemaPath).Hash.ToLowerInvariant()
+  $clientSchemaHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $clientSchemaPath).Hash.ToLowerInvariant()
+  if ($schemaHash -ne $clientSchemaHash) {
+    throw "Generated Prisma Client is stale. Run npm exec prisma generate in backend first."
   }
 }
 
@@ -66,7 +70,7 @@ function Assert-BuildIsFresh {
 }
 
 Assert-ProtectedNpmFiles
-Assert-PrismaSchema
+Assert-PrismaClient
 
 if ((Test-Path -LiteralPath $stage) -or (Test-Path -LiteralPath $archive)) {
   throw "Release output already exists; refusing to overwrite it: $stage or $archive"
@@ -114,6 +118,10 @@ Copy-Item -Recurse -LiteralPath (Join-Path $repoRoot "backend\dist") -Destinatio
 Copy-Item -Recurse -LiteralPath (Join-Path $repoRoot "backend\prisma") -Destination $backendRuntime
 Copy-Item -LiteralPath (Join-Path $repoRoot "backend\package.json") -Destination $backendRuntime
 Copy-Item -LiteralPath (Join-Path $repoRoot "backend\tsconfig.json") -Destination $backendRuntime
+$prismaClientRuntime = New-Item -ItemType Directory -Path (Join-Path $backendRuntime "prisma-client")
+Get-ChildItem -LiteralPath (Join-Path $repoRoot "backend\node_modules\.prisma\client") -File |
+  Where-Object { $_.Name -notlike "query_engine-*" } |
+  Copy-Item -Destination $prismaClientRuntime
 
 Copy-Item -Recurse -LiteralPath (Join-Path $repoRoot "reverse-proxy") -Destination $runtime
 $scriptsRuntime = New-Item -ItemType Directory -Path (Join-Path $runtime "scripts")
@@ -124,7 +132,8 @@ $protectedFiles.GetEnumerator() |
   ForEach-Object { "$($_.Value)  $($_.Key)" } |
   Set-Content -LiteralPath (Join-Path $metadata "npm-files.sha256") -Encoding ascii
 Set-Content -LiteralPath (Join-Path $metadata "base-image.txt") -Value "qihang-lab-custom:20260812-16" -Encoding ascii
-Set-Content -LiteralPath (Join-Path $metadata "prisma-schema.sha256") -Value "996cb0462a3b4f40b6b836cb6486d51015f472eaff3783a8c58da825140c8914  backend/prisma/schema.prisma" -Encoding ascii
+$schemaHash = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $repoRoot "backend\prisma\schema.prisma")).Hash.ToLowerInvariant()
+Set-Content -LiteralPath (Join-Path $metadata "prisma-schema.sha256") -Value "$schemaHash  backend/prisma/schema.prisma" -Encoding ascii
 
 $deployRuntime = New-Item -ItemType Directory -Path (Join-Path $stage "deploy")
 Copy-Item -Recurse -LiteralPath $PSScriptRoot -Destination $deployRuntime
@@ -135,7 +144,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Assert-ProtectedNpmFiles
-Assert-PrismaSchema
+Assert-PrismaClient
 
 $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $archive).Hash.ToLowerInvariant()
 $sizeMiB = [math]::Round((Get-Item -LiteralPath $archive).Length / 1MB, 2)

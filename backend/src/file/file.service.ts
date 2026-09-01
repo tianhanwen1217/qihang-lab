@@ -97,6 +97,26 @@ export class FileService {
     return await storageService.getZip(shareId);
   }
 
+  async recordShareDownload(shareId: string) {
+    await this.prisma.file.updateMany({
+      where: { shareId },
+      data: { views: { increment: 1 } },
+    });
+  }
+
+  async recordFileContentAccess(
+    shareId: string,
+    fileId: string,
+    download: boolean,
+  ) {
+    await this.prisma.file.updateMany({
+      where: { id: fileId, shareId },
+      data: download
+        ? { views: { increment: 1 } }
+        : { previewViews: { increment: 1 } },
+    });
+  }
+
   private async getStorageServiceForShare(shareId: string) {
     const share = await this.prisma.share.findUnique({
       where: { id: shareId },
@@ -160,9 +180,32 @@ export class FileService {
     const safePageSize = Math.min(30, Math.max(1, pageSize || 12));
     const now = new Date();
     const extensionsByCategory: Record<string, string[]> = {
-      DOCUMENT: [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".csv", ".txt", ".md"],
+      DOCUMENT: [
+        ".pdf",
+        ".doc",
+        ".docx",
+        ".ppt",
+        ".pptx",
+        ".xls",
+        ".xlsx",
+        ".csv",
+        ".txt",
+        ".md",
+      ],
       IMAGE: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"],
-      CODE: [".js", ".ts", ".tsx", ".jsx", ".py", ".java", ".c", ".cpp", ".h", ".go", ".rs"],
+      CODE: [
+        ".js",
+        ".ts",
+        ".tsx",
+        ".jsx",
+        ".py",
+        ".java",
+        ".c",
+        ".cpp",
+        ".h",
+        ".go",
+        ".rs",
+      ],
       ARCHIVE: [".zip", ".rar", ".7z", ".tar", ".gz"],
     };
     const categoryExtensions = extensionsByCategory[category] || [];
@@ -178,7 +221,11 @@ export class FileService {
         some: {
           visibility: "PUBLIC",
           ...(categoryExtensions.length
-            ? { OR: categoryExtensions.map((extension) => ({ name: { endsWith: extension } })) }
+            ? {
+                OR: categoryExtensions.map((extension) => ({
+                  name: { endsWith: extension },
+                })),
+              }
             : {}),
         },
       },
@@ -242,9 +289,7 @@ export class FileService {
         return {
           name:
             share.name ||
-            (publicFiles.length === 1
-              ? publicFiles[0].name
-              : "未命名资料包"),
+            (publicFiles.length === 1 ? publicFiles[0].name : "未命名资料包"),
           description: share.description,
           createdAt: share.createdAt,
           expiresAt: share.expiration,
@@ -254,13 +299,15 @@ export class FileService {
             (sum, file) => sum + parseInt(file.size),
             0,
           ),
+          views: publicFiles.reduce((sum, file) => sum + file.previewViews, 0),
           downloads: publicFiles.reduce((sum, file) => sum + file.views, 0),
+          stars: publicFiles.reduce((sum, file) => sum + file.stars, 0),
           downloadableAsZip,
           downloadId: downloadableAsZip ? share.id : undefined,
           id: share.id,
-          files: publicFiles.slice(0, 3).map((file) =>
-            this.toPublicFile({ ...file, share }),
-          ),
+          files: publicFiles
+            .slice(0, 3)
+            .map((file) => this.toPublicFile({ ...file, share })),
         };
       }),
       total,
@@ -269,11 +316,7 @@ export class FileService {
     };
   }
 
-  async listPublicPackageFiles(
-    shareId: string,
-    page = 1,
-    pageSize = 60,
-  ) {
+  async listPublicPackageFiles(shareId: string, page = 1, pageSize = 60) {
     const safePage = Math.max(1, page || 1);
     const safePageSize = Math.min(100, Math.max(1, pageSize || 60));
     const share = await this.prisma.share.findUnique({
@@ -317,24 +360,50 @@ export class FileService {
     ) {
       throw new NotFoundException("Package download is not available");
     }
+    const stream = await this.getZip(share.id);
+    await this.prisma.file.updateMany({
+      where: { shareId: share.id, visibility: "PUBLIC" },
+      data: { views: { increment: 1 } },
+    });
     return {
       name: share.name || "起航实验室资料包",
-      stream: await this.getZip(share.id),
+      stream,
     };
   }
 
   async getPublicMeta(accessToken: string, fileToken?: string) {
     const file = await this.getAccessibleFile(accessToken, fileToken, false);
-    return this.toPublicFile(file);
+    const viewedFile = await this.prisma.file.update({
+      where: { id: file.id },
+      data: { previewViews: { increment: 1 } },
+      include: { share: { include: { creator: true } } },
+    });
+    return this.toPublicFile(viewedFile);
   }
 
-  async getPublicContent(accessToken: string, fileToken?: string) {
+  async getPublicContent(
+    accessToken: string,
+    fileToken: string | undefined,
+    download: boolean,
+  ) {
     const file = await this.getAccessibleFile(accessToken, fileToken, true);
-    await this.prisma.file.update({
-      where: { id: file.id },
-      data: { views: { increment: 1 } },
-    });
+    if (download) {
+      await this.prisma.file.update({
+        where: { id: file.id },
+        data: { views: { increment: 1 } },
+      });
+    }
     return this.get(file.shareId, file.id);
+  }
+
+  async starPublicFile(accessToken: string, fileToken?: string) {
+    const file = await this.getAccessibleFile(accessToken, fileToken, true);
+    const starredFile = await this.prisma.file.update({
+      where: { id: file.id },
+      data: { stars: { increment: 1 } },
+      select: { stars: true },
+    });
+    return starredFile;
   }
 
   async unlockPublicFile(accessToken: string, password?: string) {
@@ -429,6 +498,8 @@ export class FileService {
     });
     return {
       ...updated,
+      views: updated.previewViews,
+      downloads: updated.views,
       passwordProtected: !!updated.linkPassword,
     };
   }
@@ -524,6 +595,9 @@ export class FileService {
       uploader: file.share.creator?.username || "起航实验室",
       description: file.share.description,
       category: categoryFromFileName(file.name),
+      views: file.previewViews,
+      downloads: file.views,
+      stars: file.stars,
     };
   }
 

@@ -29,6 +29,12 @@ export class FileDTO {
   @Expose()
   views: number;
 
+  @Expose()
+  downloads: number;
+
+  @Expose()
+  stars: number;
+
   share: ShareDTO;
 
   from(partial: Partial<FileDTO>) {

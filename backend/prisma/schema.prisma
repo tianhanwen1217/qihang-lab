@@ -141,6 +141,8 @@ model File {
   linkExpiresAt DateTime?
   linkEnabled   Boolean   @default(true)
   views         Int       @default(0)
+  previewViews  Int       @default(0)
+  stars         Int       @default(0)
 
   shareId String
   share   Share  @relation(fields: [shareId], references: [id], onDelete: Cascade)

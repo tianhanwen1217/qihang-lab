@@ -10,6 +10,9 @@ export type PublicFile = {
   uploader: string;
   description?: string;
   category: string;
+  views: number;
+  downloads: number;
+  stars: number;
 };
 
 export type PublicFilePage = {
@@ -30,6 +33,8 @@ export type PublicPackage = {
   fileCount: number;
   totalSize: number;
   downloads: number;
+  views: number;
+  stars: number;
   downloadableAsZip: boolean;
   files: PublicFile[];
 };
