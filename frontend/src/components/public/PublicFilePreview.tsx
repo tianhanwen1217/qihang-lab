@@ -1,7 +1,7 @@
 import {
   Alert,
+  Button,
   Center,
-  Code,
   Group,
   Loader,
   Paper,
@@ -18,7 +18,7 @@ import { PublicFile } from "../../types/publicFile.type";
 import { byteToHumanSizeString } from "../../utils/fileSize.util";
 
 const MAX_TEXT_PREVIEW_BYTES = 1024 * 1024;
-const MAX_RENDERED_LINES = 3000;
+const INITIAL_RENDERED_LINES = 3000;
 
 const textExtensions = new Set([
   "txt",
@@ -96,7 +96,6 @@ const useStyles = createStyles((theme) => ({
     margin: "0 auto",
   },
   codeViewport: {
-    maxHeight: "68vh",
     background: theme.colorScheme === "dark" ? "#07101f" : "#fffdf9",
   },
   codeTable: {
@@ -137,6 +136,7 @@ const PublicFilePreview = ({ file }: { file: PublicFile }) => {
   const [textContent, setTextContent] = useState<string>();
   const [textLoading, setTextLoading] = useState(false);
   const [textError, setTextError] = useState(false);
+  const [showAllLines, setShowAllLines] = useState(false);
   const mimeType = mime.contentType(file.name) || "";
   const extension = extensionOf(file.name);
   const isText = mimeType.startsWith("text/") || textExtensions.has(extension);
@@ -146,6 +146,8 @@ const PublicFilePreview = ({ file }: { file: PublicFile }) => {
   useEffect(() => {
     if (!isText || fileSize > MAX_TEXT_PREVIEW_BYTES) return;
     let active = true;
+    setShowAllLines(false);
+    setTextContent(undefined);
     setTextLoading(true);
     setTextError(false);
     publicFileService
@@ -162,7 +164,9 @@ const PublicFilePreview = ({ file }: { file: PublicFile }) => {
     () => (textContent ?? "").replace(/\r\n/g, "\n").split("\n"),
     [textContent],
   );
-  const visibleLines = lines.slice(0, MAX_RENDERED_LINES);
+  const visibleLines = showAllLines
+    ? lines
+    : lines.slice(0, INITIAL_RENDERED_LINES);
 
   const header = (
     <Group className={classes.header} position="apart" spacing="xs" noWrap>
@@ -251,19 +255,18 @@ const PublicFilePreview = ({ file }: { file: PublicFile }) => {
                   {visibleLines.map((line, index) => (
                     <tr key={index}>
                       <td className={classes.lineNumber}>{index + 1}</td>
-                      <td className={classes.line}>
-                        <Code color="transparent">{line || " "}</Code>
-                      </td>
+                      <td className={classes.line}>{line || " "}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </ScrollArea>
-            {lines.length > MAX_RENDERED_LINES && (
-              <Alert color="blue" radius={0}>
-                文件共有 {lines.length} 行，在线预览仅显示前{" "}
-                {MAX_RENDERED_LINES} 行。
-              </Alert>
+            {!showAllLines && lines.length > INITIAL_RENDERED_LINES && (
+              <Center p="md" sx={{ borderTop: "1px solid var(--qh-border)" }}>
+                <Button variant="light" onClick={() => setShowAllLines(true)}>
+                  继续显示剩余 {lines.length - INITIAL_RENDERED_LINES} 行
+                </Button>
+              </Center>
             )}
           </>
         )}

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-RELEASE="20260901-file-insights-2"
+RELEASE="20260901-file-insights-3"
 IMAGE="qihang-lab-custom:${RELEASE}"
 BASE_IMAGE="qihang-lab-custom:20260812-16"
 ROLLBACK_IMAGE=""
@@ -121,7 +121,7 @@ if [ -z "$CURRENT_ID" ]; then
 fi
 CURRENT_IMAGE="$(docker inspect --format '{{.Config.Image}}' "$CURRENT_ID")"
 case "$CURRENT_IMAGE" in
-  "$BASE_IMAGE"|qihang-lab-custom:20260813-upload-fix-1|qihang-lab-custom:20260813-upload-fix-2|qihang-lab-custom:20260813-upload-fix-3|qihang-lab-custom:20260813-upload-fix-4|qihang-lab-custom:20260813-upload-fix-5|qihang-lab-custom:20260815-theme-1|qihang-lab-custom:20260815-stability-1|qihang-lab-custom:20260815-harness-1|qihang-lab-custom:20260821-recruit-media-1|qihang-lab-custom:20260821-recruit-media-2|qihang-lab-custom:20260821-recruit-media-3|qihang-lab-custom:20260821-recruit-media-4|qihang-lab-custom:20260824-package-link-1|qihang-lab-custom:20260831-upload-flow-1|qihang-lab-custom:20260831-upload-flow-2|qihang-lab-custom:20260831-upload-flow-3)
+  "$BASE_IMAGE"|qihang-lab-custom:20260813-upload-fix-1|qihang-lab-custom:20260813-upload-fix-2|qihang-lab-custom:20260813-upload-fix-3|qihang-lab-custom:20260813-upload-fix-4|qihang-lab-custom:20260813-upload-fix-5|qihang-lab-custom:20260815-theme-1|qihang-lab-custom:20260815-stability-1|qihang-lab-custom:20260815-harness-1|qihang-lab-custom:20260821-recruit-media-1|qihang-lab-custom:20260821-recruit-media-2|qihang-lab-custom:20260821-recruit-media-3|qihang-lab-custom:20260821-recruit-media-4|qihang-lab-custom:20260824-package-link-1|qihang-lab-custom:20260831-upload-flow-1|qihang-lab-custom:20260831-upload-flow-2|qihang-lab-custom:20260831-upload-flow-3|qihang-lab-custom:20260901-file-insights-2)
     ROLLBACK_IMAGE="$CURRENT_IMAGE"
     ;;
   *)

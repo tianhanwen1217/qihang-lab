@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$release = "20260901-file-insights-2"
+$release = "20260901-file-insights-3"
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 $workspaceRoot = Split-Path $repoRoot -Parent
 $stage = Join-Path $workspaceRoot "qihang-lab-runtime-$release"
